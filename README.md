@@ -22,7 +22,7 @@ requires go 1.26+.
 
 - **`Controller`** - wraps gpio (dc/rst/busy/pwr pins) and spi into the low-level commands a waveshare panel expects: `Command()`, `Data()`, `Reset()`, `WaitBusy()`
 - **`Framebuffer`** - a packed 1-bit-per-pixel buffer (`NewFramebuffer(width, height)`, `SetPixel`, `ClearPixel`, `Clear`)
-- **`Panel`** - the interface a specific waveshare model implements: `Init()`, `Display(*Framebuffer) error`, `Sleep()`
+- **`Panel`** - the interface a specific waveshare model implements: `Init() error`, `Display(*Framebuffer) error`, `Sleep() error`
 - **`hw/`** - periph.io-backed implementations of the `GPIO`/`SPI` interfaces the controller needs
 - **`panels/`** - per-model panel implementations built on top of `Controller`
 - **`cmd/`** - a working example wiring everything together on real hardware
@@ -38,6 +38,7 @@ import (
 	"periph.io/x/host/v3"
 
 	"github.com/sskver/koi"
+	"github.com/sskver/koi/panels"
 )
 
 func main() {
@@ -59,12 +60,29 @@ func main() {
 	if err := ctrl.Init(); err != nil {
 		log.Fatal(err)
 	}
-  
-    // something something, you would need to create the panel, e.g. your specific model
-	fb := koi.NewFramebuffer(250, 122) // use the panel specs or define your own
+
+	// a full update flashes the whole panel but leaves the cleanest image -
+	// use it once to clear the panel before switching to partial updates
+	full := panels.NewEPD213V2(ctrl, true)
+	if err := full.Init(); err != nil {
+		log.Fatal(err)
+	}
+	if err := full.Clear(0xFF); err != nil {
+		log.Fatal(err)
+	}
+
+	// partial updates are faster and don't flash, at the cost of some ghosting over time
+	panel := panels.NewEPD213V2(ctrl, false)
+	if err := panel.Init(); err != nil {
+		log.Fatal(err)
+	}
+
+	fb := koi.NewFramebuffer(panels.Width, panels.Height)
 	fb.SetPixel(10, 10)
 
-	// then call panel.Display(fb)
+	if err := panel.Display(fb); err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 
