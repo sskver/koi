@@ -50,6 +50,8 @@
             mkdir -p $out/bin
             cp $GOPATH/bin/${name} $out/bin/koi-${platform}-${name}-${arch.goarch}
           '';
+
+          meta.mainProgram = "koi-${platform}-${name}-${arch.goarch}";
         };
 
         demoPackages = pkgs.lib.foldl'
