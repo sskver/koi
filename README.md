@@ -69,6 +69,13 @@ func main() {
 ```
 
 see `cmd/` for the full, runnable version of this on actual hardware.
+or use the provided flakes e.g.:
+
+```bash
+nix run github:sskver/koi#koi-rpi-epd213v2-arm64
+```
+
+replace `koi-rpi-epd213v2-arm64` with the appropriate flake for your board/panel combination (be sure to check the available flakes/implementations).
 
 ## supported hardware
 
